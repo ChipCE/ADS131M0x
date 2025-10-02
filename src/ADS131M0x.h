@@ -5,7 +5,8 @@
 #include "SPI.h"
 
 // define for 2-channel version ADS131M02
-#define IS_M02
+// Comment out the line below for ADS131M04 (4-channel version)
+// #define IS_M02
 
 // no delay after CS-active at adc_read
 // #define NO_CS_DELAY 

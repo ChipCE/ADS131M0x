@@ -1,12 +1,9 @@
-#ifndef ADS131M0x_h
-#define ADS131M0x_h
+#ifndef ADS131M04_h
+#define ADS131M04_h
 
 #include "Arduino.h"
 #include "SPI.h"
 
-// define for 2-channel version ADS131M02
-// Comment out the line below for ADS131M04 (4-channel version)
-// #define IS_M02
 
 // no delay after CS-active at adc_read
 // #define NO_CS_DELAY 
@@ -16,10 +13,8 @@ struct adcOutput
   uint16_t status;
   int32_t ch0;
   int32_t ch1;
-#ifndef IS_M02
   int32_t ch2;
   int32_t ch3;
-#endif
 };
 
 #define DRDY_STATE_LOGIC_HIGH 0 // DEFAULS
@@ -38,7 +33,7 @@ struct adcOutput
 #define CHANNEL_PGA_64 6
 #define CHANNEL_PGA_128 7
 
-#define INPUT_CHANNEL_MUX_AIN0P_AIN0N 0 // Default
+#define INPUT_CHANNEL_MUX_DIFF_PAIR 0 // Channel differential pair (default)
 #define INPUT_CHANNEL_MUX_INPUT_SHORTED 1
 #define INPUT_CHANNEL_MUX_POSITIVE_DC_TEST_SIGNAL 2
 #define INPUT_CHANNEL_MUX_NEGATIVE_DC_TEST_SIGNAL 3
@@ -64,11 +59,7 @@ struct adcOutput
 #define CMD_WRITE_REG 0x6000
 
 // Responses
-#ifdef IS_M02
-#define RSP_RESET_OK 0xFF22
-#else
 #define RSP_RESET_OK 0xFF24
-#endif
 #define RSP_RESET_NOK 0x0011
 
 // Registers Read Only
@@ -126,11 +117,7 @@ struct adcOutput
 #define REGMASK_STATUS_REGMAP 0x2000
 #define REGMASK_STATUS_CRC_ERR 0x1000
 #define REGMASK_STATUS_CRC_TYPE 0x0800
-#ifdef IS_M02
-#define REGMASK_STATUS_RESET 0x0200 
-#else
 #define REGMASK_STATUS_RESET 0x0400
-#endif
 #define REGMASK_STATUS_WLENGTH 0x0300
 #define REGMASK_STATUS_DRDY3 0x0008
 #define REGMASK_STATUS_DRDY2 0x0004
@@ -259,13 +246,14 @@ struct adcOutput
  * @brief Arduino class for the TI ADS131M02 and ADS131M04 ADC-converter with SPI Interface
  * 
  */
-class ADS131M0x
+class ADS131M04
 {
 public:
   static int32_t val32Ch0;
-  ADS131M0x();
+  ADS131M04();
 
   void begin(SPIClass *port, uint8_t clk_pin, uint8_t miso_pin, uint8_t mosi_pin, uint8_t cs_pin, uint8_t drdy_pin);
+  void begin(SPIClass *port, uint8_t clk_pin, uint8_t miso_pin, uint8_t mosi_pin, uint8_t cs_pin, uint8_t drdy_pin, uint8_t clkin_pin, unsigned int clkin_freq, uint8_t clkin_channel);
   int8_t isDataReadySoft(byte channel);
   bool isDataReady(void);
   void reset(uint8_t reset_pin); 
@@ -289,8 +277,13 @@ public:
   int32_t readfastCh0(void);
 
   void setClockSpeed(uint32_t cspeed);
+  void wakeup();
+  uint16_t readStatusRegister();
+  uint16_t readRegisterRaw(uint8_t address);
 
 private:
+  void sendCommand(uint16_t command);
+  void unlockRegisters();
   uint8_t writeRegister(uint8_t address, uint16_t value);
   void writeRegisterMasked(uint8_t address, uint16_t value, uint16_t mask);
   uint16_t readRegister(uint8_t address);

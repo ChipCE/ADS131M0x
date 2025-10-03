@@ -11,10 +11,10 @@ void setup()
   delay(1000);
   Serial.println("");
 
-  adc.setInputChannelSelection(0, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-  adc.setInputChannelSelection(1, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-  adc.setInputChannelSelection(2, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-  adc.setInputChannelSelection(3, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
+  adc.setInputChannelSelection(0, INPUT_CHANNEL_MUX_DIFF_PAIR);
+  adc.setInputChannelSelection(1, INPUT_CHANNEL_MUX_DIFF_PAIR);
+  adc.setInputChannelSelection(2, INPUT_CHANNEL_MUX_DIFF_PAIR);
+  adc.setInputChannelSelection(3, INPUT_CHANNEL_MUX_DIFF_PAIR);
 }
 
 void loop()

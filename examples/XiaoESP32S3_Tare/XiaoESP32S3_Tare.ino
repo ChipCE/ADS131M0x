@@ -86,17 +86,17 @@ void setup() {
     adc.setChannelEnable(1, 1);
     adc.setChannelPGA(0, CHANNEL_PGA_1);  // Gain = 1
     adc.setChannelPGA(1, CHANNEL_PGA_1);  // Gain = 1
-    adc.setInputChannelSelection(0, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-    adc.setInputChannelSelection(1, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-    
-#ifndef IS_M02
+    adc.setInputChannelSelection(0, INPUT_CHANNEL_MUX_DIFF_PAIR);
+    adc.setInputChannelSelection(1, INPUT_CHANNEL_MUX_DIFF_PAIR);
+    adc.setInputChannelSelection(2, INPUT_CHANNEL_MUX_DIFF_PAIR);
+    adc.setInputChannelSelection(3, INPUT_CHANNEL_MUX_DIFF_PAIR);
     // Configure channels 2 and 3 for ADS131M04
     adc.setChannelEnable(2, 1);
     adc.setChannelEnable(3, 1);
     adc.setChannelPGA(2, CHANNEL_PGA_1);
     adc.setChannelPGA(3, CHANNEL_PGA_1);
-    adc.setInputChannelSelection(2, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-    adc.setInputChannelSelection(3, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
+    adc.setInputChannelSelection(2, INPUT_CHANNEL_MUX_DIFF_PAIR);
+    adc.setInputChannelSelection(3, INPUT_CHANNEL_MUX_DIFF_PAIR);
 #endif
     
     delay(500);

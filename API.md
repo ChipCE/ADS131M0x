@@ -1,628 +1,238 @@
-# ADS131M0x API Documentation
-
-## Table of Contents
-- [Overview](#overview)
-- [Class: ADS131M0x](#class-ads131m0x)
-- [Data Structures](#data-structures)
-- [Constants and Definitions](#constants-and-definitions)
-- [Public Methods](#public-methods)
-- [Usage Examples](#usage-examples)
+# ADS131M02 / ADS131M04 API Reference
 
 ## Overview
 
-The ADS131M0x library provides an Arduino interface for the Texas Instruments ADS131M02 (2-channel) and ADS131M04 (4-channel) 24-bit analog-to-digital converters with SPI communication.
+This library exposes two closely related classes for Texas Instruments’ ADS131M0x simultaneous-sampling delta-sigma ADCs:
 
-**Supported Devices:**
-- ADS131M02 (2 channels)
-- ADS131M04 (4 channels)
+- `ADS131M04` for the 4-channel device
+- `ADS131M02` for the 2-channel device
 
-**Tested Platforms:**
-- ESP32
-- ESP32-S2
-- ESP32-S3
-- ESP32-C3
+Both classes share the same API where possible. Examples and method descriptions below apply to both unless explicitly noted. Tested platforms include ESP32, ESP32-S2, ESP32-S3, and ESP32-C3.
 
 ## Data Structures
 
-### adcOutput
-
-Structure containing ADC conversion results for all channels.
+### `struct adcOutput`
 
 ```cpp
 struct adcOutput {
-    uint16_t status;  // Status register value
-    int32_t ch0;      // Channel 0 reading (24-bit signed)
-    int32_t ch1;      // Channel 1 reading (24-bit signed)
-    int32_t ch2;      // Channel 2 reading (24-bit signed, M04 only)
-    int32_t ch3;      // Channel 3 reading (24-bit signed, M04 only)
+  uint16_t status;  // Status word returned with each conversion
+  int32_t  ch0;     // Channel 0 result (24-bit signed)
+  int32_t  ch1;     // Channel 1 result (24-bit signed)
+  int32_t  ch2;     // Channel 2 result (ADS131M04 only)
+  int32_t  ch3;     // Channel 3 result (ADS131M04 only)
 };
 ```
 
-## Class: ADS131M0x
-
-### Constructor
+## Classes
 
 ```cpp
-ADS131M0x()
+#include "ADS131M04.h"
+#include "ADS131M02.h"
 ```
 
-Creates an instance of the ADS131M0x class.
-
-## Public Methods
-
-### Initialization Methods
-
-#### begin()
+Instantiate the class that matches your hardware:
 
 ```cpp
-void begin(SPIClass *port, uint8_t clk_pin, uint8_t miso_pin, 
-           uint8_t mosi_pin, uint8_t cs_pin, uint8_t drdy_pin)
+ADS131M04 adc4; // 4 channels
+ADS131M02 adc2; // 2 channels
 ```
 
-Initialize the ADC with specified SPI pins.
+## Initialization
 
-**Parameters:**
-- `port` - Pointer to SPIClass object (e.g., &SPI)
-- `clk_pin` - SPI clock pin number
-- `miso_pin` - SPI MISO (Master In Slave Out) pin number
-- `mosi_pin` - SPI MOSI (Master Out Slave In) pin number
-- `cs_pin` - Chip select pin number
-- `drdy_pin` - Data ready pin number
-
-**Example:**
-```cpp
-ADS131M0x adc;
-adc.begin(&SPI, 14, 12, 13, 5, 19);
-```
-
-**Note:** Call `setClockSpeed()` before `begin()` if you need a custom SPI clock speed.
-
-#### setClockSpeed()
+### `setClockSpeed`
 
 ```cpp
-void setClockSpeed(uint32_t cspeed)
+void setClockSpeed(uint32_t hz);
 ```
 
-Set the SPI clock speed. Must be called before `begin()`.
+Configure the SPI clock frequency (default 1 MHz). Call before any overload of `begin`.
 
-**Parameters:**
-- `cspeed` - SPI clock speed in Hz (default: 1 MHz)
-
-**Example:**
-```cpp
-adc.setClockSpeed(2000000); // 2 MHz
-adc.begin(&SPI, 14, 12, 13, 5, 19);
-```
-
-#### reset()
+### `begin`
 
 ```cpp
-void reset(uint8_t reset_pin)
+void begin(SPIClass *spi,
+           uint8_t clk_pin,
+           uint8_t miso_pin,
+           uint8_t mosi_pin,
+           uint8_t cs_pin,
+           uint8_t drdy_pin);
 ```
 
-Perform hardware reset using the reset pin (active low).
-
-**Parameters:**
-- `reset_pin` - Pin number connected to ADC reset
-
-**Example:**
-```cpp
-adc.reset(4);
-```
-
-#### resetDevice()
+Initialise the ADC with the given SPI bus and GPIO assignments.
 
 ```cpp
-bool resetDevice(void)
+void begin(SPIClass *spi,
+           uint8_t clk_pin,
+           uint8_t miso_pin,
+           uint8_t mosi_pin,
+           uint8_t cs_pin,
+           uint8_t drdy_pin,
+           uint8_t clkin_pin,
+           unsigned int clkin_freq,
+           uint8_t clkin_channel);
 ```
 
-Reset the device via software command.
+ESP32-specific overload that configures an LEDC channel to output the CLKIN signal before invoking the standard initialisation. On non-ESP32 boards the extra parameters are ignored.
 
-**Returns:**
-- `true` if device responded with reset confirmation
-- `false` if reset failed
-
-**Example:**
-```cpp
-if (adc.resetDevice()) {
-    Serial.println("Reset successful");
-}
-```
-
-### Configuration Methods
-
-#### setPowerMode()
+### `reset`
 
 ```cpp
-bool setPowerMode(uint8_t powerMode)
+void reset(uint8_t reset_pin);
 ```
 
-Set the power mode of the ADC.
+Pulse the hardware reset line (active low).
 
-**Parameters:**
-- `powerMode` - Power mode selection:
-  - `POWER_MODE_VERY_LOW_POWER` (0)
-  - `POWER_MODE_LOW_POWER` (1)
-  - `POWER_MODE_HIGH_RESOLUTION` (2) - Default
-
-**Returns:**
-- `true` on success
-- `false` if invalid parameter
-
-**Example:**
-```cpp
-adc.setPowerMode(POWER_MODE_HIGH_RESOLUTION);
-```
-
-#### setOsr()
+### `resetDevice`
 
 ```cpp
-bool setOsr(uint16_t osr)
+bool resetDevice();
 ```
 
-Set the oversampling ratio for the digital filter.
+Issue the software RESET command; returns `true` when the ADC acknowledges with `RSP_RESET_OK`.
 
-**Parameters:**
-- `osr` - Oversampling ratio:
-  - `OSR_128` (0)
-  - `OSR_256` (1)
-  - `OSR_512` (2)
-  - `OSR_1024` (3) - Default
-  - `OSR_2048` (4)
-  - `OSR_4096` (5)
-  - `OSR_8192` (6)
-  - `OSR_16384` (7)
+## Configuration Methods
 
-**Returns:**
-- `true` on success
-- `false` if invalid parameter
-
-**Example:**
-```cpp
-adc.setOsr(OSR_128); // 32KSPS with 8MHz clock
-```
-
-#### setChannelEnable()
+### Power and Sample Rate
 
 ```cpp
-bool setChannelEnable(uint8_t channel, uint16_t enable)
+bool setPowerMode(uint8_t mode);   // POWER_MODE_*
+bool setOsr(uint16_t osr);         // OSR_*
 ```
 
-Enable or disable a specific input channel.
-
-**Parameters:**
-- `channel` - Channel number (0-3 for M04, 0-1 for M02)
-- `enable` - 1 to enable, 0 to disable
-
-**Returns:**
-- `true` on success
-- `false` if invalid channel
-
-**Example:**
-```cpp
-adc.setChannelEnable(0, 1); // Enable channel 0
-adc.setChannelEnable(2, 0); // Disable channel 2
-```
-
-#### setChannelPGA()
+### Channel Control
 
 ```cpp
-bool setChannelPGA(uint8_t channel, uint16_t pga)
+bool setChannelEnable(uint8_t channel, uint16_t enable);
+bool setChannelPGA(uint8_t channel, uint16_t gain);
+bool setInputChannelSelection(uint8_t channel, uint8_t mux);
+bool setChannelOffsetCalibration(uint8_t channel, int32_t offset);
+bool setChannelGainCalibration(uint8_t channel, uint32_t gain);
 ```
 
-Set the programmable gain amplifier (PGA) for a channel.
+For `ADS131M02`, channel indices above 1 return `false`.
 
-**Parameters:**
-- `channel` - Channel number (0-3 for M04, 0-1 for M02)
-- `pga` - PGA gain setting:
-  - `CHANNEL_PGA_1` (0) - Gain = 1
-  - `CHANNEL_PGA_2` (1) - Gain = 2
-  - `CHANNEL_PGA_4` (2) - Gain = 4
-  - `CHANNEL_PGA_8` (3) - Gain = 8
-  - `CHANNEL_PGA_16` (4) - Gain = 16
-  - `CHANNEL_PGA_32` (5) - Gain = 32
-  - `CHANNEL_PGA_64` (6) - Gain = 64
-  - `CHANNEL_PGA_128` (7) - Gain = 128
-
-**Returns:**
-- `true` on success
-- `false` if invalid channel
-
-**Example:**
-```cpp
-adc.setChannelPGA(0, CHANNEL_PGA_8); // Set channel 0 to gain of 8
-```
-
-#### setInputChannelSelection()
+### Global Options
 
 ```cpp
-bool setInputChannelSelection(uint8_t channel, uint8_t input)
+void setGlobalChop(uint16_t enable);
+void setGlobalChopDelay(uint16_t delay);
+bool setDrdyFormat(uint8_t format);
+bool setDrdyStateWhenUnavailable(uint8_t state);
 ```
 
-Configure the input multiplexer for a channel.
-
-**Parameters:**
-- `channel` - Channel number (0-3 for M04, 0-1 for M02)
-- `input` - Input selection:
-  - `INPUT_CHANNEL_MUX_AIN0P_AIN0N` (0) - Normal differential input (default)
-  - `INPUT_CHANNEL_MUX_INPUT_SHORTED` (1) - Inputs shorted
-  - `INPUT_CHANNEL_MUX_POSITIVE_DC_TEST_SIGNAL` (2) - Positive DC test signal
-  - `INPUT_CHANNEL_MUX_NEGATIVE_DC_TEST_SIGNAL` (3) - Negative DC test signal
-
-**Returns:**
-- `true` on success
-- `false` if invalid channel
-
-**Example:**
-```cpp
-adc.setInputChannelSelection(0, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-```
-
-#### setChannelOffsetCalibration()
+## Status and Data
 
 ```cpp
-bool setChannelOffsetCalibration(uint8_t channel, int32_t offset)
+bool     isDataReady() const;
+int8_t   isDataReadySoft(uint8_t channel);
+bool     isResetStatus() const;
+bool     isLockSPI() const;
+uint16_t isResetOK() const;
+adcOutput readADC();
+int32_t  readfastCh0();
 ```
 
-Set offset calibration value for a channel.
-
-**Parameters:**
-- `channel` - Channel number (0-3 for M04, 0-1 for M02)
-- `offset` - 24-bit signed offset value
-
-**Returns:**
-- `true` on success
-- `false` if invalid channel
-
-**Example:**
-```cpp
-adc.setChannelOffsetCalibration(0, 100);
-```
-
-#### setChannelGainCalibration()
+### ADS131M04 Additional Helpers
 
 ```cpp
-bool setChannelGainCalibration(uint8_t channel, uint32_t gain)
+void     wakeup();
+uint16_t readStatusRegister();
+uint16_t readRegisterRaw(uint8_t address);
 ```
 
-Set gain calibration value for a channel.
-
-**Parameters:**
-- `channel` - Channel number (0-3 for M04, 0-1 for M02)
-- `gain` - 24-bit unsigned gain value
-
-**Returns:**
-- `true` on success
-- `false` if invalid channel
-
-**Example:**
-```cpp
-adc.setChannelGainCalibration(0, 0x800000);
-```
-
-#### setGlobalChop()
-
-```cpp
-void setGlobalChop(uint16_t global_chop)
-```
-
-Enable or disable global chop mode.
-
-**Parameters:**
-- `global_chop` - 1 to enable, 0 to disable
-
-**Example:**
-```cpp
-adc.setGlobalChop(1); // Enable global chop
-```
-
-#### setGlobalChopDelay()
-
-```cpp
-void setGlobalChopDelay(uint16_t delay)
-```
-
-Set global chop delay value.
-
-**Parameters:**
-- `delay` - Delay value (refer to datasheet for units)
-
-**Example:**
-```cpp
-adc.setGlobalChopDelay(5);
-```
-
-#### setDrdyFormat()
-
-```cpp
-bool setDrdyFormat(uint8_t drdyFormat)
-```
-
-Set the data ready (DRDY) pin format.
-
-**Parameters:**
-- `drdyFormat` - 0 or 1 (refer to datasheet)
-
-**Returns:**
-- `true` on success
-- `false` if invalid parameter
-
-#### setDrdyStateWhenUnavailable()
-
-```cpp
-bool setDrdyStateWhenUnavailable(uint8_t drdyState)
-```
-
-Set DRDY pin state when data is unavailable.
-
-**Parameters:**
-- `drdyState`:
-  - `DRDY_STATE_LOGIC_HIGH` (0) - Default
-  - `DRDY_STATE_HI_Z` (1) - High impedance
-
-**Returns:**
-- `true` on success
-- `false` if invalid parameter
-
-### Data Reading Methods
-
-#### readADC()
-
-```cpp
-adcOutput readADC(void)
-```
-
-Read all ADC channels and status.
-
-**Returns:**
-- `adcOutput` structure containing status and channel readings
-
-**Example:**
-```cpp
-adcOutput res = adc.readADC();
-Serial.print("CH0 = ");
-Serial.println(res.ch0);
-Serial.print("CH1 = ");
-Serial.println(res.ch1);
-```
-
-#### readfastCh0()
-
-```cpp
-int32_t readfastCh0(void)
-```
-
-Fast read of channel 0 only.
-
-**Returns:**
-- 24-bit signed value from channel 0
-
-**Example:**
-```cpp
-int32_t value = adc.readfastCh0();
-Serial.println(value);
-```
-
-### Status Methods
-
-#### isDataReady()
-
-```cpp
-bool isDataReady(void)
-```
-
-Check if new ADC data is ready (hardware pin method).
-
-**Returns:**
-- `true` if data is ready
-- `false` if data is not ready
-
-**Example:**
-```cpp
-if (adc.isDataReady()) {
-    adcOutput res = adc.readADC();
-}
-```
-
-#### isDataReadySoft()
-
-```cpp
-int8_t isDataReadySoft(byte channel)
-```
-
-Check if data is ready for a specific channel (software method via register read).
-
-**Parameters:**
-- `channel` - Channel number (0-3 for M04, 0-1 for M02)
-
-**Returns:**
-- Non-zero if data ready
-- 0 if data not ready
-- -1 if invalid channel
-
-**Example:**
-```cpp
-if (adc.isDataReadySoft(0)) {
-    // Channel 0 data is ready
-}
-```
-
-#### isResetStatus()
-
-```cpp
-bool isResetStatus(void)
-```
-
-Check if the device is in reset state.
-
-**Returns:**
-- `true` if in reset state
-- `false` otherwise
-
-#### isLockSPI()
-
-```cpp
-bool isLockSPI(void)
-```
-
-Check if SPI interface is locked.
-
-**Returns:**
-- `true` if locked
-- `false` if unlocked
-
-#### isResetOK()
-
-```cpp
-uint16_t isResetOK(void)
-```
-
-Read the reset command response register.
-
-**Returns:**
-- `RSP_RESET_OK` (0xFF22 for M02, 0xFF24 for M04) if reset successful
-- `RSP_RESET_NOK` (0x0011) if reset failed
-
-## Constants and Definitions
-
-### Power Modes
-- `POWER_MODE_VERY_LOW_POWER` - Very low power mode
-- `POWER_MODE_LOW_POWER` - Low power mode
-- `POWER_MODE_HIGH_RESOLUTION` - High resolution mode (default)
-
-### Oversampling Ratios
-- `OSR_128` to `OSR_16384` - Various oversampling ratios
-
-### Channel PGA Gains
-- `CHANNEL_PGA_1` to `CHANNEL_PGA_128` - Programmable gain amplifier settings
-
-### Input Channel Multiplexer
-- `INPUT_CHANNEL_MUX_AIN0P_AIN0N` - Normal differential input
-- `INPUT_CHANNEL_MUX_INPUT_SHORTED` - Inputs shorted together
-- `INPUT_CHANNEL_MUX_POSITIVE_DC_TEST_SIGNAL` - Positive DC test
-- `INPUT_CHANNEL_MUX_NEGATIVE_DC_TEST_SIGNAL` - Negative DC test
-
-### DRDY States
-- `DRDY_STATE_LOGIC_HIGH` - Logic high when unavailable
-- `DRDY_STATE_HI_Z` - High impedance when unavailable
+## Constants
+
+- Power modes: `POWER_MODE_VERY_LOW_POWER`, `POWER_MODE_LOW_POWER`, `POWER_MODE_HIGH_RESOLUTION`
+- Oversampling: `OSR_128` through `OSR_16384`
+- Channel PGA gains: `CHANNEL_PGA_1` … `CHANNEL_PGA_128`
+- Input multiplexer: `INPUT_CHANNEL_MUX_DIFF_PAIR`, `INPUT_CHANNEL_MUX_INPUT_SHORTED`, `INPUT_CHANNEL_MUX_POSITIVE_DC_TEST_SIGNAL`, `INPUT_CHANNEL_MUX_NEGATIVE_DC_TEST_SIGNAL`
+- DRDY state: `DRDY_STATE_LOGIC_HIGH`, `DRDY_STATE_HI_Z`
+- SPI dummy words: `SPI_MASTER_DUMMY`, `SPI_MASTER_DUMMY16`, `SPI_MASTER_DUMMY32`
 
 ## Usage Examples
 
-### Basic Initialization and Reading
+### ADS131M04 (four channels, ESP32 driving CLKIN)
 
 ```cpp
 #include <Arduino.h>
-#include <ADS131M0x.h>
+#include "ADS131M04.h"
 
-ADS131M0x adc;
+constexpr uint8_t PIN_SCK   = 14;
+constexpr uint8_t PIN_MISO  = 12;
+constexpr uint8_t PIN_MOSI  = 13;
+constexpr uint8_t PIN_CS    = 5;
+constexpr uint8_t PIN_DRDY  = 19;
+constexpr uint8_t PIN_RESET = 4;
+constexpr uint8_t PIN_CLKIN = 27;
+constexpr uint8_t CLKIN_CH  = 0;
+constexpr uint32_t CLKIN_HZ = 1'000'000;
+
+ADS131M04 adc;
 
 void setup() {
-    Serial.begin(115200);
-    
-    // Initialize ADC with SPI pins
-    adc.begin(&SPI, 14, 12, 13, 5, 19);
-    
-    // Configure channels
-    adc.setInputChannelSelection(0, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-    adc.setInputChannelSelection(1, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-    
-    // Set channel gains
-    adc.setChannelPGA(0, CHANNEL_PGA_1);
-    adc.setChannelPGA(1, CHANNEL_PGA_1);
-    
-    delay(1000);
+  Serial.begin(115200);
+  adc.reset(PIN_RESET);
+  adc.setClockSpeed(2'000'000);
+  adc.begin(&SPI, PIN_SCK, PIN_MISO, PIN_MOSI,
+            PIN_CS, PIN_DRDY, PIN_CLKIN, CLKIN_HZ, CLKIN_CH);
+
+  adc.setPowerMode(POWER_MODE_HIGH_RESOLUTION);
+  adc.setOsr(OSR_1024);
+
+  for (uint8_t ch = 0; ch < 4; ++ch) {
+    adc.setChannelEnable(ch, 1);
+    adc.setChannelPGA(ch, CHANNEL_PGA_1);
+    adc.setInputChannelSelection(ch, INPUT_CHANNEL_MUX_DIFF_PAIR);
+  }
 }
 
 void loop() {
-    if (adc.isDataReady()) {
-        adcOutput res = adc.readADC();
-        
-        Serial.print("Status: ");
-        Serial.println(res.status, BIN);
-        Serial.print("CH0: ");
-        Serial.println(res.ch0);
-        Serial.print("CH1: ");
-        Serial.println(res.ch1);
-        
-        delay(100);
-    }
+  if (!adc.isDataReady()) {
+    return;
+  }
+  adcOutput res = adc.readADC();
+  Serial.printf("CH0=%ld\tCH1=%ld\tCH2=%ld\tCH3=%ld\n",
+                res.ch0, res.ch1, res.ch2, res.ch3);
 }
 ```
 
-### High-Speed Sampling
+### ADS131M02 (external CLKIN)
 
 ```cpp
 #include <Arduino.h>
-#include <ADS131M0x.h>
+#include "ADS131M02.h"
 
-ADS131M0x adc;
+ADS131M02 adc;
 
 void setup() {
-    Serial.begin(115200);
-    
-    // Set faster SPI clock
-    adc.setClockSpeed(8000000); // 8 MHz
-    adc.begin(&SPI, 14, 12, 13, 5, 19);
-    
-    // Configure for high-speed sampling
-    adc.setOsr(OSR_128); // 32 KSPS with 8MHz clock
-    adc.setPowerMode(POWER_MODE_HIGH_RESOLUTION);
-    
-    adc.setInputChannelSelection(0, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
+  Serial.begin(115200);
+  adc.setClockSpeed(1'000'000);
+  adc.begin(&SPI, 14, 12, 13, 5, 19);
+  adc.setPowerMode(POWER_MODE_HIGH_RESOLUTION);
+  adc.setOsr(OSR_2048);
+  adc.setChannelEnable(0, 1);
+  adc.setChannelEnable(1, 1);
+  adc.setInputChannelSelection(0, INPUT_CHANNEL_MUX_DIFF_PAIR);
+  adc.setInputChannelSelection(1, INPUT_CHANNEL_MUX_DIFF_PAIR);
 }
 
 void loop() {
-    static unsigned long sampleCount = 0;
-    static unsigned long lastTime = 0;
-    
-    if (adc.isDataReady()) {
-        adcOutput res = adc.readADC();
-        sampleCount++;
-    }
-    
-    // Print samples per second
-    if (millis() - lastTime >= 1000) {
-        Serial.print("SPS: ");
-        Serial.println(sampleCount);
-        sampleCount = 0;
-        lastTime = millis();
-    }
-}
-```
-
-### Using Hardware Reset
-
-```cpp
-#include <Arduino.h>
-#include <ADS131M0x.h>
-
-#define RESET_PIN 4
-
-ADS131M0x adc;
-
-void setup() {
-    Serial.begin(115200);
-    
-    // Hardware reset before initialization
-    adc.reset(RESET_PIN);
-    
-    adc.begin(&SPI, 14, 12, 13, 5, 19);
-    
-    // Verify reset was successful
-    if (adc.isResetStatus()) {
-        Serial.println("Device in reset state");
-    }
-}
-
-void loop() {
-    // Your code here
+  if (adc.isDataReady()) {
+    adcOutput res = adc.readADC();
+    Serial.printf("CH0=%ld\tCH1=%ld\n", res.ch0, res.ch1);
+  }
 }
 ```
 
 ## Notes
 
-- Always call `setClockSpeed()` before `begin()` if you need a custom SPI clock speed (default is 1 MHz)
-- The library uses conditional compilation for M02 vs M04 via the `IS_M02` define in ADS131M0x.h
-- All channel values are 24-bit signed integers in two's complement format
-- For best performance, use `readfastCh0()` if you only need channel 0
-- Refer to the [TI ADS131M02 datasheet](https://www.ti.com/product/ADS131M02) and [ADS131M04 datasheet](https://www.ti.com/product/ADS131M04) for detailed register descriptions and electrical specifications
+- Conversion results are 24-bit two’s complement values.
+- In high-resolution mode, `fDATA = fCLKIN / (2 × OSR)`.
+- When using the LEDC-enabled `begin` overload, ensure the chosen channel is free.
+- Consult the TI datasheets for timing, calibration, and noise performance details.
+
+## References
+
+- [ADS131M02 Datasheet](https://www.ti.com/product/ADS131M02)
+- [ADS131M04 Datasheet](https://www.ti.com/product/ADS131M04)
+- [Project Repository](https://github.com/ChipCE/ADS131M0x)

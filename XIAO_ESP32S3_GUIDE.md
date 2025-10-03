@@ -226,9 +226,7 @@ Where:
 
 1. Ensure ADS131M0x library is installed
 2. Verify board is set to "XIAO_ESP32S3" in Arduino IDE
-3. Check `IS_M02` define in ADS131M0x.h matches your hardware:
-   - For ADS131M02: Keep `#define IS_M02`
-   - For ADS131M04: Comment out `#define IS_M02`
+3. Include the header that matches your hardware and instantiate the matching class (`ADS131M02` or `ADS131M04`).
 
 ## Serial Plotter Usage
 

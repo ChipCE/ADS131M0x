@@ -202,16 +202,12 @@ void ADS131M04::writeRegisterMasked(uint8_t address, uint16_t value, uint16_t ma
 /// @brief Hardware reset (reset low activ) 
 /// @param reset_pin 
 void ADS131M04::reset(uint8_t reset_pin)
-void ADS131M04::begin(SPIClass *port, uint8_t clk_pin, uint8_t miso_pin, uint8_t mosi_pin, uint8_t cs_pin, uint8_t drdy_pin, uint8_t clkin_pin, unsigned int clkin_freq, uint8_t clkin_channel)
+{
   pinMode(reset_pin, OUTPUT);
+  digitalWrite(reset_pin, LOW);
+  delay(1);
   digitalWrite(reset_pin, HIGH);
-  ledcSetup(clkin_channel, clkin_freq, 1);
-  ledcAttachPin(clkin_pin, clkin_channel);
-  ledcWrite(clkin_channel, 1);
-  digitalWrite(reset_pin, HIGH);
-  (void)clkin_pin;
-  (void)clkin_freq;
-  (void)clkin_channel;
+}
 /**
  * @brief read status cmd-register
  * 
@@ -254,11 +250,11 @@ void ADS131M04::begin(SPIClass *port, uint8_t clk_pin, uint8_t miso_pin, uint8_t
   wakeup();
 }
 
-void ADS131M04::begin(SPIClass *port, uint8_t clk_pin, uint8_t miso_pin, uint8_t mosi_pin, uint8_t cs_pin, uint8_t drdy_pin, uint8_t cklin_pin, unsigned int cklin_freq, uint8_t cklin_channel)
+void ADS131M04::begin(SPIClass *port, uint8_t clk_pin, uint8_t miso_pin, uint8_t mosi_pin, uint8_t cs_pin, uint8_t drdy_pin, uint8_t clkin_pin, unsigned int clkin_freq, uint8_t clkin_channel)
 {
 #if defined(ARDUINO_ARCH_ESP32)
-  ledcSetup(clkin_channel, cklin_freq, 1);
-  ledcAttachPin(clkin_pin, cklin_channel);
+  ledcSetup(clkin_channel, clkin_freq, 1);
+  ledcAttachPin(clkin_pin, clkin_channel);
   ledcWrite(clkin_channel, 1);
 #else
   (void)clkin_pin;
@@ -356,7 +352,7 @@ bool ADS131M04::setDrdyStateWhenUnavailable(uint8_t drdyState)
   }
   else
   {
-    writeRegisterMasked(REG_MODE, drdyState < 1, REGMASK_MODE_DRDY_HiZ);
+    writeRegisterMasked(REG_MODE, drdyState << 1, REGMASK_MODE_DRDY_HiZ);
     return true;
   }
 }
@@ -737,9 +733,6 @@ adcOutput ADS131M04::readADC(void)
   }
 
   // faster!!!
-  spiPort->transfer(0x00);
-  spiPort->transfer(0x00);
-  spiPort->transfer(0x00);
   // read CH1 --------
   x = spiPort->transfer(0x00);
   x2 = spiPort->transfer(0x00);

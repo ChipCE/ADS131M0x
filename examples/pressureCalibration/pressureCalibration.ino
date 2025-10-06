@@ -12,20 +12,19 @@ ADS131M04 adc;
 
 // use esp32 clock to drive clkin of ADS131M04
 #define CLKIN_PIN D7
-#define CLKIN_FREQ 1000000 // 1 MHz
+#define CLKIN_FREQ 1024000 // 1024KHz
 #define CLKIN_CHANNEL 0
 
+#define PIN_BUTTON D6
 
+int step = 0;
 
 void setup()
 {
   Serial.begin(115200);
-  while (!Serial) {
-        // wait for Serial to become active
-    }
+  while (!Serial);
   delay(1000);
-  Serial.println("");
-
+  
   // Hardware reset
   Serial.println("Resetting ADC...");
   adc.reset(PIN_RESET);
@@ -44,23 +43,25 @@ void setup()
 
   // Configure ADC
   adc.setPowerMode(POWER_MODE_HIGH_RESOLUTION);
-  adc.setOsr(OSR_1024); // 1M / 2 / 1024 = 488 Hz sample rate
+  adc.setOsr(OSR_512); // 1024K / 2 / 512 = 1000 Hz sample rate
 
   adc.setChannelEnable(0, 1);
-  adc.setChannelPGA(0, CHANNEL_PGA_1);
+  adc.setChannelPGA(0, CHANNEL_PGA_8);
   adc.setInputChannelSelection(0, INPUT_CHANNEL_MUX_DIFF_PAIR);
 
   adc.setChannelEnable(1, 1);
-  adc.setChannelPGA(1, CHANNEL_PGA_1);
+  adc.setChannelPGA(1, CHANNEL_PGA_8);
   adc.setInputChannelSelection(1, INPUT_CHANNEL_MUX_DIFF_PAIR);
 
   adc.setChannelEnable(2, 1);
-  adc.setChannelPGA(2, CHANNEL_PGA_1);
+  adc.setChannelPGA(2, CHANNEL_PGA_8);
   adc.setInputChannelSelection(2, INPUT_CHANNEL_MUX_DIFF_PAIR);
 
   adc.setChannelEnable(3, 1);
-  adc.setChannelPGA(3, CHANNEL_PGA_1);
+  adc.setChannelPGA(3, CHANNEL_PGA_8);
   adc.setInputChannelSelection(3, INPUT_CHANNEL_MUX_DIFF_PAIR);
+
+  pinMode(PIN_BUTTON, INPUT_PULLUP);
 }
 
 
@@ -68,15 +69,26 @@ unsigned long lastRead = micros();
 
 void loop()
 {
-  if (adc.isDataReady())
-  {
+  if (!digitalRead(PIN_BUTTON)){
+    if (step == 0) {
+      Serial.println("Start Calibration");
+      step = 1;
+      while(!adc.isDataReady()); // wait for adc ready
       adcOutput res = adc.readADC();
-      //Serial.println(res.ch0);
-      unsigned long lap = micros() - lastRead;
-      lastRead = micros();
-      // calc sps
-      float sps = 1000000.0 / lap;
-      //Serial.print("SPS: ");
-      Serial.println(sps);
+      adc.setChannelOffsetCalibration(0, res.ch0);
+      Serial.print("Calibrated @ ");
+      Serial.println(res.ch0);
+      delay(1000);
+      step++;
+    } else {
+      while(!adc.isDataReady());
+      adcOutput res = adc.readADC();
+      Serial.print("Read @ ");
+      Serial.println(res.ch0);
+      delay(1000);
+    }
+    
   }
+
+  
 }

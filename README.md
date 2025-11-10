@@ -5,8 +5,15 @@
 
 Arduino lib for the  ADS131M02 and ADS131M04 24-bit Analog to Digital Converter.
 
-Mostly based on the work of https://github.com/LucasEtchezuri/Arduino-ADS131M04
-## Changes to original lib
+Mostly based on the work of https://github.com/LucasEtchezuri/Arduino-ADS131M04 and https://github.com/raibisch/ADS131M0x
+
+## My changes to Raibisch's lib
+* Fix problem of channel offset when using ADS131M04
+* Add example of using ESP32 cled as clock source for ADS131M0x
+* Split ADS131M0x to ADS131M02 and ADS131M04
+* Fix folder structure of examples
+
+## Raibisch's change to original LucasEtchezuri's lib
 * adaption for ADS131M02 and conditional code parts for ADS131M02 and ADS131M04
 * modified interface for flexible SPI-Port
 * method to change SPI clock 
@@ -31,7 +38,7 @@ Place the ADS131M0x library folder your arduinosketchfolder/libraries/ folder. Y
 Add in 'platform.ini' (no need to download before)
 ```
 lib_deps =
-  https://github.com/raibisch/ADS131M0x
+  https://github.com/ChipCE/ADS131M0x
 ``` 
 
 

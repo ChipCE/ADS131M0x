@@ -12,10 +12,10 @@ void setup()
   delay(1000);
   Serial.println("");
 
-  adc.setInputChannelSelection(0, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-  adc.setInputChannelSelection(1, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-  adc.setInputChannelSelection(2, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-  adc.setInputChannelSelection(3, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
+  adc.setInputChannelSelection(0, INPUT_CHANNEL_MUX_DIFFERENTIAL_PAIR);
+  adc.setInputChannelSelection(1, INPUT_CHANNEL_MUX_DIFFERENTIAL_PAIR);
+  adc.setInputChannelSelection(2, INPUT_CHANNEL_MUX_DIFFERENTIAL_PAIR);
+  adc.setInputChannelSelection(3, INPUT_CHANNEL_MUX_DIFFERENTIAL_PAIR);
   adc.setOsr(OSR_128);      // 32KSPS  only with 8MHZ clock
 }
 

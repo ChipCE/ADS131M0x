@@ -1,20 +1,14 @@
 #include "Arduino.h"
-#include "ADS131M0x.h"
+#include "ADS131M04.h"
 #include "SPI.h"
 
-#ifdef IS_M02
-#define DO_PRAGMA(x) _Pragma (#x)
-#define INFO(x) DO_PRAGMA(message ("\nREMARK: " #x))
-//INFO Version for ADS131M02
-#endif
-
-int32_t ADS131M0x::val32Ch0 = 0x7FFFFF;
+int32_t ADS131M04::val32Ch0 = 0x7FFFFF;
 
 /**
- * @brief Construct a new ADS131M0x::ADS131M0x object
+ * @brief Construct a new ADS131M04::ADS131M04 object
  * 
  */
-ADS131M0x::ADS131M0x()
+ADS131M04::ADS131M04()
 {
 }
 
@@ -23,7 +17,7 @@ ADS131M0x::ADS131M0x()
  *
  * @param cspeed value in Hz
  */
-void ADS131M0x::setClockSpeed(uint32_t cspeed)
+void ADS131M04::setClockSpeed(uint32_t cspeed)
 {
   spiClockSpeed = cspeed;
 }
@@ -35,7 +29,7 @@ void ADS131M0x::setClockSpeed(uint32_t cspeed)
  * @param value 
  * @return uint8_t 
  */
-uint8_t ADS131M0x::writeRegister(uint8_t address, uint16_t value)
+uint8_t ADS131M04::writeRegister(uint8_t address, uint16_t value)
 {
   uint16_t res;
   uint8_t addressRcv;
@@ -60,13 +54,11 @@ uint8_t ADS131M0x::writeRegister(uint8_t address, uint16_t value)
   spiPort->transfer16(0x0000);
   spiPort->transfer(0x00);
 
-#ifndef IS_M02
   spiPort->transfer16(0x0000);
   spiPort->transfer(0x00);
 
   spiPort->transfer16(0x0000);
   spiPort->transfer(0x00);
-#endif
 
   res = spiPort->transfer16(0x0000);
   spiPort->transfer(0x00);
@@ -79,13 +71,13 @@ uint8_t ADS131M0x::writeRegister(uint8_t address, uint16_t value)
 
   spiPort->transfer16(0x0000);
   spiPort->transfer(0x00);
-#ifndef IS_M02
+
   spiPort->transfer16(0x0000);
   spiPort->transfer(0x00);
 
   spiPort->transfer16(0x0000);
   spiPort->transfer(0x00);
-#endif
+
   delayMicroseconds(1);
   digitalWrite(csPin, HIGH);
 
@@ -105,7 +97,7 @@ uint8_t ADS131M0x::writeRegister(uint8_t address, uint16_t value)
  * @param address
  * @return uint16_t
  */
-uint16_t ADS131M0x::readRegister(uint8_t address)
+uint16_t ADS131M04::readRegister(uint8_t address)
 {
   uint16_t cmd;
   uint16_t data;
@@ -126,13 +118,13 @@ uint16_t ADS131M0x::readRegister(uint8_t address)
 
   spiPort->transfer16(0x0000);
   spiPort->transfer(0x00);
-#ifndef IS_M02
+
   spiPort->transfer16(0x0000);
   spiPort->transfer(0x00);
 
   spiPort->transfer16(0x0000);
   spiPort->transfer(0x00);
-#endif
+
   data = spiPort->transfer16(0x0000);
   spiPort->transfer(0x00);
 
@@ -144,13 +136,13 @@ uint16_t ADS131M0x::readRegister(uint8_t address)
 
   spiPort->transfer16(0x0000);
   spiPort->transfer(0x00);
-#ifndef IS_M02
+
   spiPort->transfer16(0x0000);
   spiPort->transfer(0x00);
 
   spiPort->transfer16(0x0000);
   spiPort->transfer(0x00);
-#endif
+
   delayMicroseconds(1);
   digitalWrite(csPin, HIGH);
   return data;
@@ -164,7 +156,7 @@ uint16_t ADS131M0x::readRegister(uint8_t address)
  * @param value
  * @param mask
  */
-void ADS131M0x::writeRegisterMasked(uint8_t address, uint16_t value, uint16_t mask)
+void ADS131M04::writeRegisterMasked(uint8_t address, uint16_t value, uint16_t mask)
 {
   //Read the current content of the register
   uint16_t register_contents = readRegister(address);
@@ -178,7 +170,7 @@ void ADS131M0x::writeRegisterMasked(uint8_t address, uint16_t value, uint16_t ma
 
 /// @brief Hardware reset (reset low activ) 
 /// @param reset_pin 
-void ADS131M0x::reset(uint8_t reset_pin)
+void ADS131M04::reset(uint8_t reset_pin)
 {
   pinMode(reset_pin, OUTPUT);
   digitalWrite(reset_pin, HIGH);
@@ -194,7 +186,7 @@ void ADS131M0x::reset(uint8_t reset_pin)
  * 
  * @return uint16_t 
  */
-uint16_t ADS131M0x::isResetOK(void)
+uint16_t ADS131M04::isResetOK(void)
 {
   return (readRegister(CMD_RESET) );
 }
@@ -211,7 +203,7 @@ uint16_t ADS131M0x::isResetOK(void)
  * @param cs_pin
  * @param drdy_pin
  */
-void ADS131M0x::begin(SPIClass *port, uint8_t clk_pin, uint8_t miso_pin, uint8_t mosi_pin, uint8_t cs_pin, uint8_t drdy_pin)
+void ADS131M04::begin(SPIClass *port, uint8_t clk_pin, uint8_t miso_pin, uint8_t mosi_pin, uint8_t cs_pin, uint8_t drdy_pin)
 {
   // Set pins up
   csPin = cs_pin;
@@ -234,7 +226,7 @@ void ADS131M0x::begin(SPIClass *port, uint8_t clk_pin, uint8_t miso_pin, uint8_t
  * @param channel 
  * @return int8_t 
  */
-int8_t ADS131M0x::isDataReadySoft(byte channel)
+int8_t ADS131M04::isDataReadySoft(byte channel)
 {
   if (channel == 0)
   {
@@ -244,7 +236,7 @@ int8_t ADS131M0x::isDataReadySoft(byte channel)
   {
     return (readRegister(REG_STATUS) & REGMASK_STATUS_DRDY1);
   }
-#ifndef IS_M02
+
   else if (channel == 2)
   {
     return (readRegister(REG_STATUS) & REGMASK_STATUS_DRDY2);
@@ -253,7 +245,7 @@ int8_t ADS131M0x::isDataReadySoft(byte channel)
   {
     return (readRegister(REG_STATUS) & REGMASK_STATUS_DRDY3);
   }
-#endif
+
  return -1;
 }
 
@@ -264,7 +256,7 @@ int8_t ADS131M0x::isDataReadySoft(byte channel)
  * @return true 
  * @return false 
  */
-bool ADS131M0x::isResetStatus(void)
+bool ADS131M04::isResetStatus(void)
 {
   return (readRegister(REG_STATUS) & REGMASK_STATUS_RESET);
 }
@@ -275,7 +267,7 @@ bool ADS131M0x::isResetStatus(void)
  * @return true
  * @return false
  */
-bool ADS131M0x::isLockSPI(void)
+bool ADS131M04::isLockSPI(void)
 {
   return (readRegister(REG_STATUS) & REGMASK_STATUS_LOCK);
 }
@@ -287,7 +279,7 @@ bool ADS131M0x::isLockSPI(void)
  * @return true 
  * @return false 
  */
-bool ADS131M0x::setDrdyFormat(uint8_t drdyFormat)
+bool ADS131M04::setDrdyFormat(uint8_t drdyFormat)
 {
   if (drdyFormat > 1)
   {
@@ -307,7 +299,7 @@ bool ADS131M0x::setDrdyFormat(uint8_t drdyFormat)
  * @return true 
  * @return false 
  */
-bool ADS131M0x::setDrdyStateWhenUnavailable(uint8_t drdyState)
+bool ADS131M04::setDrdyStateWhenUnavailable(uint8_t drdyState)
 {
   if (drdyState > 1)
   {
@@ -327,7 +319,7 @@ bool ADS131M0x::setDrdyStateWhenUnavailable(uint8_t drdyState)
  * @return true 
  * @return false 
  */
-bool ADS131M0x::setPowerMode(uint8_t powerMode)
+bool ADS131M04::setPowerMode(uint8_t powerMode)
 {
   if (powerMode > 3)
   {
@@ -347,7 +339,7 @@ bool ADS131M0x::setPowerMode(uint8_t powerMode)
  * @return true 
  * @return false 
  */
-bool ADS131M0x::setOsr(uint16_t osr)
+bool ADS131M04::setOsr(uint16_t osr)
 {
   if (osr > 7)
   {
@@ -368,7 +360,7 @@ bool ADS131M0x::setOsr(uint16_t osr)
  * @return true 
  * @return false 
  */
-bool ADS131M0x::setChannelEnable(uint8_t channel, uint16_t enable)
+bool ADS131M04::setChannelEnable(uint8_t channel, uint16_t enable)
 {
   if (channel > 3)
   {
@@ -384,7 +376,7 @@ bool ADS131M0x::setChannelEnable(uint8_t channel, uint16_t enable)
     writeRegisterMasked(REG_CLOCK, enable << 9, REGMASK_CLOCK_CH1_EN);
     return true;
   }
-#ifndef IS_M02
+
   else if (channel == 2)
   {
     writeRegisterMasked(REG_CLOCK, enable << 10, REGMASK_CLOCK_CH2_EN);
@@ -395,7 +387,7 @@ bool ADS131M0x::setChannelEnable(uint8_t channel, uint16_t enable)
     writeRegisterMasked(REG_CLOCK, enable << 11, REGMASK_CLOCK_CH3_EN);
     return true;
   }
-#endif
+
   return false;
 }
 
@@ -407,7 +399,7 @@ bool ADS131M0x::setChannelEnable(uint8_t channel, uint16_t enable)
  * @return true 
  * @return false 
  */
-bool ADS131M0x::setChannelPGA(uint8_t channel, uint16_t pga)
+bool ADS131M04::setChannelPGA(uint8_t channel, uint16_t pga)
 {
   if (channel == 0)
   {
@@ -419,7 +411,7 @@ bool ADS131M0x::setChannelPGA(uint8_t channel, uint16_t pga)
     writeRegisterMasked(REG_GAIN, pga << 4, REGMASK_GAIN_PGAGAIN1);
     return true;
   }
-#ifndef IS_M02
+
   else if (channel == 2)
   {
     writeRegisterMasked(REG_GAIN, pga << 8, REGMASK_GAIN_PGAGAIN2);
@@ -430,13 +422,13 @@ bool ADS131M0x::setChannelPGA(uint8_t channel, uint16_t pga)
     writeRegisterMasked(REG_GAIN, pga << 12, REGMASK_GAIN_PGAGAIN3);
     return true;
   }
-#endif
+
   return false;
 }
 
 /// @brief Set global Chop (see datasheet)
 /// @param global_chop 
-void ADS131M0x::setGlobalChop(uint16_t global_chop)
+void ADS131M04::setGlobalChop(uint16_t global_chop)
 {
   writeRegisterMasked(REG_CFG, global_chop << 8, REGMASK_CFG_GC_EN);
 }
@@ -444,12 +436,12 @@ void ADS131M0x::setGlobalChop(uint16_t global_chop)
 
 /// @brief Set global Chop Delay
 /// @param delay todo:  ms or us ??
-void ADS131M0x::setGlobalChopDelay(uint16_t delay)
+void ADS131M04::setGlobalChopDelay(uint16_t delay)
 {
   writeRegisterMasked(REG_CFG, delay << 9, REGMASK_CFG_GC_DLY);
 }
 
-bool ADS131M0x::setInputChannelSelection(uint8_t channel, uint8_t input)
+bool ADS131M04::setInputChannelSelection(uint8_t channel, uint8_t input)
 {
   if (channel == 0)
   {
@@ -461,7 +453,7 @@ bool ADS131M0x::setInputChannelSelection(uint8_t channel, uint8_t input)
     writeRegisterMasked(REG_CH1_CFG, input, REGMASK_CHX_CFG_MUX);
     return true;
   }
-#ifndef IS_M02
+
   else if (channel == 2)
   {
     writeRegisterMasked(REG_CH2_CFG, input, REGMASK_CHX_CFG_MUX);
@@ -472,7 +464,7 @@ bool ADS131M0x::setInputChannelSelection(uint8_t channel, uint8_t input)
     writeRegisterMasked(REG_CH3_CFG, input, REGMASK_CHX_CFG_MUX);
     return true;
   }
-#endif
+
   return false;
 }
 
@@ -480,7 +472,7 @@ bool ADS131M0x::setInputChannelSelection(uint8_t channel, uint8_t input)
 /// @param channel 
 /// @param offset 
 /// @return 
-bool ADS131M0x::setChannelOffsetCalibration(uint8_t channel, int32_t offset)
+bool ADS131M04::setChannelOffsetCalibration(uint8_t channel, int32_t offset)
 {
 
   uint16_t MSB = offset >> 8;
@@ -499,7 +491,7 @@ bool ADS131M0x::setChannelOffsetCalibration(uint8_t channel, int32_t offset)
     writeRegisterMasked(REG_CH1_OCAL_LSB, LSB << 8, REGMASK_CHX_OCAL0_LSB);
     return true;
   }
-#ifndef IS_M02
+
   else if (channel == 2)
   {
     writeRegisterMasked(REG_CH2_OCAL_MSB, MSB, 0xFFFF);
@@ -512,7 +504,7 @@ bool ADS131M0x::setChannelOffsetCalibration(uint8_t channel, int32_t offset)
     writeRegisterMasked(REG_CH3_OCAL_LSB, LSB << 8 , REGMASK_CHX_OCAL0_LSB);
     return true;
   }
-#endif
+
   return false;
 }
 
@@ -520,7 +512,7 @@ bool ADS131M0x::setChannelOffsetCalibration(uint8_t channel, int32_t offset)
 /// @param channel 
 /// @param gain 
 /// @return 
-bool ADS131M0x::setChannelGainCalibration(uint8_t channel, uint32_t gain)
+bool ADS131M04::setChannelGainCalibration(uint8_t channel, uint32_t gain)
 {
 
   uint16_t MSB = gain >> 8;
@@ -538,7 +530,7 @@ bool ADS131M0x::setChannelGainCalibration(uint8_t channel, uint32_t gain)
     writeRegisterMasked(REG_CH1_GCAL_LSB, LSB << 8, REGMASK_CHX_GCAL0_LSB);
     return true;
   }
-#ifndef IS_M02
+
   else if (channel == 2)
   {
     writeRegisterMasked(REG_CH2_GCAL_MSB, MSB, 0xFFFF);
@@ -551,13 +543,13 @@ bool ADS131M0x::setChannelGainCalibration(uint8_t channel, uint32_t gain)
     writeRegisterMasked(REG_CH3_GCAL_LSB, LSB << 8, REGMASK_CHX_GCAL0_LSB);
     return true;
   }
-#endif
+
   return false;
 }
 
 /// @brief hardware-pin test if data is ready 
 /// @return 
-bool ADS131M0x::isDataReady()
+bool ADS131M04::isDataReady()
 {
   if (digitalRead(drdyPin) == HIGH)
   {
@@ -569,7 +561,7 @@ bool ADS131M0x::isDataReady()
 /// @brief Read only CH0 fast
 /// @param  
 /// @return ch0 (int32)
-int32_t ADS131M0x::readfastCh0(void)
+int32_t ADS131M04::readfastCh0(void)
 {
   uint8_t x = 0;
   uint8_t x2 = 0;
@@ -632,7 +624,7 @@ int32_t ADS131M0x::readfastCh0(void)
 /// @brief reset device from register, read CAP 8.5.1.10 Commands from official documentation  
 /// @param  
 /// @return True if the device responded with the RSP_RESET_OK message
-bool ADS131M0x::resetDevice(void){
+bool ADS131M04::resetDevice(void){
   uint8_t x = 0;
   uint8_t x2 = 0;
   uint16_t ris = 0;
@@ -663,7 +655,7 @@ bool ADS131M0x::resetDevice(void){
 /// @brief Read ADC port (all Ports)
 /// @param  
 /// @return 
-adcOutput ADS131M0x::readADC(void)
+adcOutput ADS131M04::readADC(void)
 {
   uint8_t x = 0;
   uint8_t x2 = 0;
@@ -695,10 +687,6 @@ adcOutput ADS131M0x::readADC(void)
     res.ch0 = aux;
   }
 
-  // faster!!!
-  spiPort->transfer(0x00);
-  spiPort->transfer(0x00);
-  spiPort->transfer(0x00);
   // read CH1 --------
   x = spiPort->transfer(0x00);
   x2 = spiPort->transfer(0x00);
@@ -713,7 +701,7 @@ adcOutput ADS131M0x::readADC(void)
     res.ch1 = aux;
   }
   
-#ifndef IS_M02
+
   x = spiPort->transfer(0x00);
   x2 = spiPort->transfer(0x00);
   x3 = spiPort->transfer(0x00);
@@ -739,7 +727,7 @@ adcOutput ADS131M0x::readADC(void)
   {
     res.ch3 = aux;
   }
-#endif
+
 
   spiPort->transfer(0x00);
   spiPort->transfer(0x00);

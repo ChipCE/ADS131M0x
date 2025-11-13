@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include "ADS131M04.h"
 
+// #include <driver/ledc.h> // for 3.x api
+
 // This sample use Xiao esp32_s3 board
 // Use D7 pin and CLED function of esp32 to provide the clock for CLKIN of ADS131M04
 
@@ -33,10 +35,30 @@ void setup()
   while (!Serial);
   delay(1000);
 
-  // setup cled as clock output
+  // setup cled as clock output 2.x api
   ledcSetup(CLKIN_CHANNEL, CLKIN_FREQ, 1);
   ledcAttachPin(CLKIN_PIN, CLKIN_CHANNEL);
   ledcWrite(CLKIN_CHANNEL, 1);
+
+  // setup cled as clock output 3.x api
+  // ledc_channel_config_t ledc_channel = {
+  //   .gpio_num   = CLKIN_PIN,
+  //   .speed_mode = LEDC_LOW_SPEED_MODE,
+  //   .channel    = (ledc_channel_t)CLKIN_CHANNEL,
+  //   .intr_type  = LEDC_INTR_DISABLE,
+  //   .timer_sel  = LEDC_TIMER_0,
+  //   .duty       = 1,      // 50% for 1-bit resolution
+  //   .hpoint     = 0
+  // };
+  // ledc_timer_config_t ledc_timer = {
+  //   .speed_mode      = LEDC_LOW_SPEED_MODE,
+  //   .duty_resolution = LEDC_TIMER_1_BIT,
+  //   .timer_num       = LEDC_TIMER_0,
+  //   .freq_hz         = CLKIN_FREQ,
+  //   .clk_cfg         = LEDC_AUTO_CLK
+  // };
+  // ledc_timer_config(&ledc_timer);
+  // ledc_channel_config(&ledc_channel);
 
 
   // Hardware reset

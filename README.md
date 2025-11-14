@@ -11,7 +11,8 @@ Mostly based on the work of https://github.com/LucasEtchezuri/Arduino-ADS131M04 
 * Fix problem of channel offset when using ADS131M04
 * Add example of using ESP32 cled as clock source for ADS131M0x
 * Split ADS131M0x to ADS131M02 and ADS131M04
-* Fix folder structure of examples
+* Fix examples
+* Add support for rp2040
 
 ## Raibisch's change to original LucasEtchezuri's lib
 * adaption for ADS131M02 and conditional code parts for ADS131M02 and ADS131M04
@@ -20,7 +21,7 @@ Mostly based on the work of https://github.com/LucasEtchezuri/Arduino-ADS131M04 
 * minor changes for speed optimation
 * additonal interface description
 
-Please notice: all modifications are only testet with ESP32, ESP32-S2, ESP32-S3 and ESP32-C3
+Please notice: all modifications are only testet with ESP32, rp2040
 
 ## Helpfull Links
 Datasheet = https://www.ti.com/product/ADS131M02

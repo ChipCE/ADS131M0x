@@ -6,7 +6,7 @@ ADS131M04 adc;
 void setup()
 {
   Serial.begin(115200);
-  adc.begin(14, 12, 13, 5, 19);
+  adc.begin(&SPI, 14, 12, 13, 5, 19);
 
   delay(1000);
   Serial.println("");

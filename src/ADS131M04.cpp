@@ -209,9 +209,27 @@ void ADS131M04::begin(SPIClass *port, uint8_t clk_pin, uint8_t miso_pin, uint8_t
   csPin = cs_pin;
   drdyPin = drdy_pin;
   spiPort = port;
-  
+
+#if defined(ARDUINO_ARCH_RP2040)
+  if (spiPort == &SPI) {
+    SPI.setSCK(clk_pin);
+    SPI.setRX(miso_pin);
+    SPI.setTX(mosi_pin);
+    SPI.setCS(cs_pin);
+    SPI.begin();
+  } else if (spiPort == &SPI1) {
+    SPI1.setSCK(clk_pin);
+    SPI1.setRX(miso_pin);
+    SPI1.setTX(mosi_pin);
+    SPI1.setCS(cs_pin);
+    SPI1.begin();
+  } else {
+    spiPort->begin();
+  }
+#else
   spiPort->begin(clk_pin, miso_pin, mosi_pin, cs_pin); // SCLK, MISO, MOSI, SS
-  SPISettings settings(spiClockSpeed, SPI_MSBFIRST, SPI_MODE1);
+#endif
+  SPISettings settings(spiClockSpeed, MSBFIRST, SPI_MODE1);
   spiPort->beginTransaction(settings);
   delay(1);
   
@@ -307,7 +325,7 @@ bool ADS131M04::setDrdyStateWhenUnavailable(uint8_t drdyState)
   }
   else
   {
-    writeRegisterMasked(REG_MODE, drdyState < 1, REGMASK_MODE_DRDY_HiZ);
+    writeRegisterMasked(REG_MODE, drdyState << 1, REGMASK_MODE_DRDY_HiZ);
     return true;
   }
 }
@@ -591,6 +609,19 @@ int32_t ADS131M04::readfastCh0(void)
     val32Ch0 = aux;
   }
   
+#if defined(ARDUINO_ARCH_RP2040)
+  spiPort->transfer(0x00);
+  spiPort->transfer(0x00);
+  spiPort->transfer(0x00);
+
+  spiPort->transfer(0x00);
+  spiPort->transfer(0x00);
+  spiPort->transfer(0x00);
+
+  spiPort->transfer(0x00);
+  spiPort->transfer(0x00);
+  spiPort->transfer(0x00);
+#else
   spiPort->write16(0x00);
   spiPort->write(0x00);
 
@@ -599,6 +630,7 @@ int32_t ADS131M04::readfastCh0(void)
 
   spiPort->write16(0x00);
   spiPort->write(0x00);
+#endif
   
   /* slower
   spiPort->transfer(0x00);

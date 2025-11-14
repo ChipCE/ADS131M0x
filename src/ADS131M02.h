@@ -86,20 +86,6 @@ struct adcOutput
 #define REG_CH1_GCAL_MSB 0x11
 #define REG_CH1_GCAL_LSB 0x12
 
-// Registers Channel 2 Specific
-#define REG_CH2_CFG 0x13
-#define REG_CH2_OCAL_MSB 0x14
-#define REG_CH2_OCAL_LSB 0x15
-#define REG_CH2_GCAL_MSB 0x16
-#define REG_CH2_GCAL_LSB 0x17
-
-// Registers Channel 3 Specific
-#define REG_CH3_CFG 0x18
-#define REG_CH3_OCAL_MSB 0x19
-#define REG_CH3_OCAL_LSB 0x1A
-#define REG_CH3_GCAL_MSB 0x1B
-#define REG_CH3_GCAL_LSB 0x1C
-
 // Registers MAP CRC
 #define REG_MAP_CRC 0x3E
 

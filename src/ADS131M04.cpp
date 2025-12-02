@@ -181,14 +181,9 @@ void ADS131M04::reset(uint8_t reset_pin)
   delay(1);
 }
 
-/**
- * @brief read status cmd-register
- * 
- * @return uint16_t 
- */
-uint16_t ADS131M04::isResetOK(void)
+bool ADS131M04::isCommunicationOk(void)
 {
-  return (readRegister(CMD_RESET) );
+  return (readRegister(REG_ID) & 0xFF00) == REG_ID_VALUE;
 }
 
 /**

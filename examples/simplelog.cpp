@@ -19,6 +19,10 @@ void adcInit()
     adc.setClockSpeed(200000);
     adc.reset(ADC_RESET);
     adc.begin(&SpiADC, ADC_CLK, ADC_MISO, ADC_MOSI, ADC_CS, ADC_DRDY);
+
+    // check if the spi communication is ok
+    //adc.isCommunicationOk();
+
     adc.setInputChannelSelection(0, INPUT_CHANNEL_MUX_DIFFERENTIAL_PAIR);
     adc.setChannelPGA(0, CHANNEL_PGA_1);
 }

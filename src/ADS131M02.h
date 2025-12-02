@@ -63,6 +63,7 @@ struct adcOutput
 // Registers Read Only
 #define REG_ID 0x00
 #define REG_STATUS 0x01
+#define REG_ID_VALUE 0x2200 // 0x22xx
 
 // Registers Global Settings across channels
 #define REG_MODE 0x02
@@ -255,9 +256,11 @@ public:
   bool setOsr(uint16_t osr);
   bool resetDevice(void);
 
-  uint16_t isResetOK(void);
   adcOutput readADC(void);
   int32_t readfastCh0(void);
+
+  // return if communication is ok
+  bool isCommunicationOk(void);
 
   void setClockSpeed(uint32_t cspeed);
 
